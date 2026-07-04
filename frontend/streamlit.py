@@ -15,7 +15,7 @@ def response_generator(text):
         time.sleep(0.05)
 
 
-st.title("Secure Bank Chat Bot")
+st.title("SecureBank India – Customer Service Support")
 
 # Initialize chat history
 if "messages" not in st.session_state:

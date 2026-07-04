@@ -12,7 +12,7 @@ our own ChatOpenAI instance.
 """
 from pydantic import BaseModel, Field
 
-from app.llm import get_llm
+from app.llm import get_llm, invoke_llm_with_retry
 
 
 class ScoreResult(BaseModel):
@@ -34,7 +34,7 @@ class EndToEndJudgment(BaseModel):
 
 def _judge(prompt: str, schema: type[BaseModel]) -> BaseModel:
     llm = get_llm().with_structured_output(schema)
-    return llm.invoke(prompt)
+    return invoke_llm_with_retry(llm=llm, messages=prompt)
 
 
 def judge_faithfulness(answer: str, contexts: list[str]) -> ScoreResult:

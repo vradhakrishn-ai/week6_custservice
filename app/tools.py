@@ -1,7 +1,8 @@
 import json
 import re
 from functools import lru_cache
-
+from dotenv import load_dotenv
+load_dotenv()
 from langchain_core.tools import tool
 
 from .llm import get_llm
@@ -47,7 +48,7 @@ _INTENT_RULES: list[tuple[str, list[str], str]] = [
     ),
 ]
 
-_DEFAULT_ROUTING = "general_support"
+_DEFAULT_ROUTING = "general_banking_support"
 
 
 def _classify(customer_message: str) -> IntentResult:
@@ -106,3 +107,67 @@ def knowledge_retrieval(query: str) -> str:
     """
     rag_answer = _get_rag_pipeline().answer(query)
     return json.dumps({"answer": rag_answer.answer, "citations": rag_answer.citations})
+
+
+def _get_tool_llm():
+    return ChatOpenAI(model="gpt-4o-mini", temperature=0.0)
+
+@tool
+def intent_router(customer_message: str) -> str:
+    """Use this tool first to categorize the incoming customer query into a specific domain."""
+    class RouterSchema(BaseModel):
+        category: str = Field(description="account_inquiry | card_services | loan_query | complaint | general_faq")
+    
+    llm = _get_tool_llm().with_structured_output(RouterSchema)
+    result = llm.invoke(f"Categorize this banking query: {customer_message}")
+    return json.dumps({"category": result.category})
+
+@tool
+def sentiment_analyzer(customer_message: str) -> str:
+    """Analyze the emotional tone and sentiment of the customer's message."""
+    from .model import SentimentAnalysis
+    
+    llm = _get_tool_llm().with_structured_output(SentimentAnalysis)
+    result = llm.invoke(f"Analyze the sentiment of this message: {customer_message}")
+    return result.model_dump_json()
+
+@tool
+def complaint_handler(complaint_text: str) -> str:
+    """Process a customer formal complaint, extracting the core grievance and filing a log entry."""
+    class ComplaintSchema(BaseModel):
+        grievance: str = Field(description="Summary of the main issue")
+        needs_refund: bool = Field(description="True if customer mentions money lost or refund needed")
+        
+    llm = _get_tool_llm().with_structured_output(ComplaintSchema)
+    result = llm.invoke(f"Extract complaint details: {complaint_text}")
+    
+    log_entry = {
+        "status": "complaint_registered",
+        "grievance": result.grievance,
+        "needs_refund": result.needs_refund
+    }
+    return json.dumps(log_entry)
+
+@tool
+def escalation_handler(reason: str, priority_level: str = "high") -> str:
+    """Escalate the conversation to a human banking supervisor or specialized support group."""
+    from .model import EscalationDetails
+    
+    ticket_number = f"TKT-{uuid.uuid4().hex[:8].upper()}"
+    
+    # Determine department based on context keywords in the reason
+    reason_lower = reason.lower()
+    if "card" in reason_lower or "charge" in reason_lower:
+        dept = "Card Disputes Team"
+    elif "loan" in reason_lower or "emi" in reason_lower:
+        dept = "Loans Operations"
+    else:
+        dept = "Grievance Redressal Cell"
+        
+    details = EscalationDetails(
+        ticket_id=ticket_number,
+        department=dept,
+        priority=priority_level,
+        reason=reason
+    )
+    return details.model_dump_json()
