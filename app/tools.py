@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import json
 import re
 import uuid 
@@ -112,18 +113,46 @@ def sentiment_analyzer(customer_message: str) -> str:
 
 @tool
 def complaint_handler(complaint_text: str) -> str:
-    """Process a customer formal complaint, extracting the core grievance and filing a log entry."""
+    """Process a customer formal complaint, extracting the core grievance, 
+    calculating priority level scoring, and mapping strict resolution SLA timers.
+    """
     class ComplaintSchema(BaseModel):
         grievance: str = Field(description="Summary of the main issue")
-        needs_refund: bool = Field(description="True if customer mentions money lost or refund needed")
+        needs_refund: bool = Field(description="True if customer mentions money lost, fraud, or refund needed")
+        severity_score: int = Field(description="1 to 5 scale representing distress. 5=financial loss/fraud, 1=mild inconvenience")
         
     llm = _get_tool_llm().with_structured_output(ComplaintSchema)
     result = llm.invoke(f"Extract complaint details: {complaint_text}")
     
+    if result.needs_refund or result.severity_score >= 4:
+        priority = "URGENT"
+        sla_hours = 6
+    elif result.severity_score == 3:
+        priority = "HIGH"
+        sla_hours = 24
+    elif result.severity_score == 2:
+        priority = "MEDIUM"
+        sla_hours = 48
+    else:
+        priority = "LOW"
+        sla_hours = 72
+
+    current_time = datetime.now()
+    sla_deadline = (current_time + timedelta(hours=sla_hours)).strftime("%Y-%m-%d %H:%M:%S")
+
+    resolution_meta = {
+        "grievance": result.grievance,
+        "priority_level": priority,
+        "severity_score": result.severity_score,
+        "sla_resolution_window": f"{sla_hours} Hours",
+        "sla_deadline_target": sla_deadline
+    }
+    
     return (
-        f"COMPLAINT SUCCESSFULLY REGISTERED. Grievance: '{result.grievance}', Needs Refund: {result.needs_refund}. "
-        "Instruction: Formally acknowledge this grievance to the customer, provide reassurance, and let them know "
-        "their case is being handled by our Grievance Redressal Cell."
+        f"COMPLAINT SUCCESSFULLY REGISTERED. Metadata Details: {json.dumps(resolution_meta)}. "
+        f"Instruction: Formally acknowledge this grievance to the customer. Inform them that their case "
+        f"has been escalated with an internal priority classification of '{priority}' and a strict resolution "
+        f"target SLA set for {sla_deadline}."
     )
 
 @tool
@@ -175,8 +204,14 @@ def get_loan_details(account_number: str) -> str:
 
 @tool
 def get_recent_transactions(account_number: str) -> str:
-    """Fetch the statement list of the last 10 historical transaction logs for an account number."""
+    """Fetch the statement list of historical transaction logs for an account number."""
     account = MOCK_USERS_DB.get(str(account_number).strip())
     if not account:
         return f"ERROR: Account number '{account_number}' not found."
-    return json.dumps({"account_number": account_number, "transactions": account["transactions"]})
+    
+    transactions = account.get("transactions") or account.get("transaction_history") or account.get("statement")
+    
+    if transactions is None:
+        return f"ERROR: Transaction history key mismatch inside MOCK_USERS_DB for account {account_number}."
+        
+    return json.dumps({"account_number": account_number, "transactions": transactions})

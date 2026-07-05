@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 from fastapi import FastAPI, HTTPException, BackgroundTasks, status
 from fastapi.middleware.cors import CORSMiddleware
-
+from .security.pii_scrubber import mask_pii
 from .chain import chat
 from . import memory
 from .model import (
@@ -46,15 +46,15 @@ def background_ingest_worker(job_id: str, file_path: str):
 @app.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(req: ChatRequest):
     try:
-        response_text, cached = chat(session_id=req.session_id, message=req.message)
-        
+        #safe_message = mask_pii(req.message)
+        response_text, cached = await chat(session_id=req.session_id, message=req.message)
+        safe_response = mask_pii(response_text)
         return ChatResponse(
             session_id=req.session_id,
-            response=response_text,
+            response=safe_response,
             cached=cached,
             citations=[],
-            retrieval_trace=[]  # Bypasses serialization validation errors safely
-        )
+            retrieval_trace=[]  )
     except Exception as exc:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc))
 
