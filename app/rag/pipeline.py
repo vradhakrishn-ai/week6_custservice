@@ -1,11 +1,11 @@
 import time
-
 from langchain_core.language_models import BaseLanguageModel
 from langchain_core.prompts import ChatPromptTemplate
 
 from ..logging_utils import get_logger, log_event
 from ..model import RAGAnswer, RetrievedChunk
-from .query_transform import get_multi_query_retriever
+ 
+from .query_transform import get_hyde_retriever
 from .reranker import rerank
 
 logger = get_logger("rag.pipeline")
@@ -28,7 +28,8 @@ class RAGPipeline:
         self._llm = llm
         self._retrieve_k = retrieve_k
         self._rerank_top_n = rerank_top_n
-        self._retriever = get_multi_query_retriever(llm, k=retrieve_k)
+        
+        self._retriever = get_hyde_retriever(llm, k=retrieve_k)
         self._chain = ANSWER_PROMPT | llm
 
     def answer(self, query: str) -> RAGAnswer:

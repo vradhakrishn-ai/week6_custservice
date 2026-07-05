@@ -1,24 +1,21 @@
 import os
-
-from langchain_chroma import Chroma
+from .base_store import BaseVectorStore
+from .store_implementations import ChromaStore, FAISSStore, PineconeStore
 from langchain_core.retrievers import BaseRetriever
 
-from .embeddings import get_embeddings
-
-COLLECTION_NAME = "securebank_knowledge_base"
-
-
-def _persist_dir() -> str:
-    return os.getenv("CHROMA_PERSIST_DIR", "./data/chroma_db")
-
-
-def get_vectorstore() -> Chroma:
-    return Chroma(
-        collection_name=COLLECTION_NAME,
-        embedding_function=get_embeddings(),
-        persist_directory=_persist_dir(),
-    )
-
+def get_vector_backend() -> BaseVectorStore:
+    """Factory resolver supplying the active swappable VectorStore concrete layout."""
+    backend_choice = os.getenv("VECTOR_BACKEND", "chroma").lower().strip()
+    
+    if backend_choice == "chroma":
+        return ChromaStore()
+    elif backend_choice == "faiss":
+        return FAISSStore()
+    elif backend_choice == "pinecone":
+        return PineconeStore()
+    else:
+        raise ValueError(f"Unsupported VECTOR_BACKEND config configuration layout: {backend_choice}")
 
 def get_dense_retriever(k: int = 5) -> BaseRetriever:
-    return get_vectorstore().as_retriever(search_kwargs={"k": k})
+    """Maintains backward compatibility with your active pipeline routes."""
+    return get_vector_backend().get_retriever(k=k)

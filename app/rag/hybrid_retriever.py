@@ -1,6 +1,7 @@
 import os
 
-from langchain_classic.retrievers.ensemble import EnsembleRetriever
+#from langchain_classic.retrievers.ensemble import EnsembleRetriever
+from langchain.retrievers import EnsembleRetriever
 from langchain_community.retrievers import BM25Retriever
 from langchain_core.retrievers import BaseRetriever
 

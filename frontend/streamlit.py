@@ -8,7 +8,6 @@ import os
 FASTAPI_URL = os.environ.get("FASTAPI_URL", "http://localhost:8000")
 
 
-# Streamed response emulator
 def response_generator(text):
     for word in text.split():
         yield word + " "
@@ -17,23 +16,18 @@ def response_generator(text):
 
 st.title("SecureBank India – Customer Service Support")
 
-# Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
 if "session_id" not in st.session_state:
     st.session_state.session_id = str(uuid.uuid4())
 
-# Display chat messages from history on app rerun
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Accept user input
 if user_input := st.chat_input("What is up?"):
-    # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": user_input})
-    # Display user message in chat message container
     with st.chat_message("user"):
         st.markdown(user_input)
         
@@ -51,8 +45,6 @@ if user_input := st.chat_input("What is up?"):
         else:
             response_text =f"Error in te request"
 
-    # Display assistant response in chat message container
     with st.chat_message("assistant"):
         response = st.write_stream(response_generator(response_text))
-    # Add assistant response to chat history
     st.session_state.messages.append({"role": "assistant", "content": response})

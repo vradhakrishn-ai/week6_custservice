@@ -14,7 +14,7 @@ load_dotenv()
 from ..logging_utils import get_logger, log_event
 from .chunking import chunk_documents
 from .loaders import load_knowledge_base
-from .vectorstore import get_vectorstore
+from .vectorstore import get_vector_backend
 
 logger = get_logger("rag.ingest")
 
@@ -32,17 +32,13 @@ def run_ingest() -> int:
     chunks = chunk_documents(documents)
     log_event(logger, "chunked documents", chunk_count=len(chunks))
 
-    vectorstore = get_vectorstore()
-    existing_ids = vectorstore.get()["ids"]
-    if existing_ids:
-        vectorstore.delete(ids=existing_ids)
-        log_event(logger, "cleared existing collection", removed=len(existing_ids))
-
-    ids = [chunk.metadata["chunk_id"] for chunk in chunks]
-    vectorstore.add_documents(documents=chunks, ids=ids)
-    log_event(logger, "ingested chunks into vector store", count=len(chunks))
+    vector_backend = get_vector_backend()
+    vector_backend.clear()
+    log_event(logger, "cleared existing data collection index layer")
+    
+    vector_backend.ingest_documents(chunks)
+    log_event(logger, "ingested chunks into configured vector store", count=len(chunks))
     return len(chunks)
-
 
 if __name__ == "__main__":
     run_ingest()

@@ -1,29 +1,32 @@
 import os
 from dotenv import load_dotenv
 
-# Stable LangChain primitives
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.tracers.context import collect_runs
-from langchain_core.agents import AgentFinish
 
 from .memory import get_history, append_turn
 from .llm import get_llm
-from .tools import intent_router, sentiment_analyzer, complaint_handler, escalation_handler
+from .tools import intent_router, sentiment_analyzer, complaint_handler, escalation_handler, get_account_details, get_loan_details, get_recent_transactions
 from .logging_utils import get_logger
 
 load_dotenv()
 logger = get_logger("securebank.chain")
 
-SUPPORT_TOOLS = [intent_router, sentiment_analyzer, complaint_handler, escalation_handler]
+SUPPORT_TOOLS = [intent_router, sentiment_analyzer, complaint_handler, escalation_handler,get_account_details, get_loan_details, get_recent_transactions]
 TOOL_MAP = {tool.name: tool for tool in SUPPORT_TOOLS}
 
 SYSTEM_INSTRUCTIONS = (
     "You are FinBot, the SecureBank India AI Assistant.\n"
     "Your job is to manage banking customer support interactions smoothly.\n\n"
+    "CONTEXT RETENTION POLICY:\n"
+    "- Carefully read through the entire `chat_history` payload on every turn.\n"
+    "- If the customer asks about their balances, loans, or transactions and has provided their account number previously in the thread history, extraction is mandatory. Automatically reuse that verified account number for your tool operations.\n"
+    "- DO NOT ask the customer to re-verify or re-enter their account number if it is visible in the chat history.\n\n"
     "CRITICAL PROCESS:\n"
-    "1. For EVERY message, you MUST run the `sentiment_analyzer` and `intent_router` tools.\n"
-    "2. If the intent is classified as a 'complaint' or the sentiment is 'negative', invoke `complaint_handler`."
+    "1. At the start of analyzing a customer turn, you MUST run the `sentiment_analyzer` and `intent_router` tools if they have not been run yet.\n"
+    "2. If the intent is classified as a 'complaint' or the sentiment is 'negative', invoke `complaint_handler`.\n"
+    "3. Once your analysis and required handlers have run, synthesize your final response to the customer."
 )
 
 AGENT_PROMPT = ChatPromptTemplate.from_messages([
@@ -43,27 +46,24 @@ def _parse_history_to_messages(history: list[dict]) -> list:
     return mapped_messages
 
 def _format_scratchpad(intermediate_steps: list) -> list:
-    """
-    Natively converts intermediate agent actions and tool responses into 
-    standard LangChain Message sequences without brittle package dependencies.
-    """
+    """Natively constructs the agent scratchpad into clear LangChain Messages."""
     message_log = []
     for action, observation in intermediate_steps:
         message_log.append(AIMessage(content="", tool_calls=[{
             "name": action.tool,
             "args": action.tool_input,
-            "id": action.tool_call_id if hasattr(action, "tool_call_id") else f"call_{action.tool}"
+            "id": action.tool_call_id
         }]))
         message_log.append(ToolMessage(
             content=str(observation),
-            tool_call_id=action.tool_call_id if hasattr(action, "tool_call_id") else f"call_{action.tool}"
+            tool_call_id=action.tool_call_id
         ))
     return message_log
 
 def chat(session_id: str, message: str) -> tuple[str, bool]:
     """
-    Executes a standard conversational cycle. Manages session retrieval,
-    natively resolves tool actions in a clean loop, and logs to LangSmith.
+    Executes a standard conversational cycle. Natively manages the execution loop
+    and routes tool actions cleanly without fragile framework wrapper dependencies.
     """
     llm = get_llm()
     llm_with_tools = llm.bind_tools(SUPPORT_TOOLS)
@@ -74,8 +74,23 @@ def chat(session_id: str, message: str) -> tuple[str, bool]:
     intermediate_steps = []
     response_text = ""
     
+    loop_count = 0
+    max_loops = 6
+    
     with collect_runs() as trace_collector:
         while True:
+            loop_count += 1
+            if loop_count > max_loops:
+                logger.warning(f"Loop guard triggered for session {session_id}. Forcing final text compilation.")
+                final_prompt = AGENT_PROMPT.format_messages(
+                    input=message,
+                    chat_history=chat_history,
+                    agent_scratchpad=_format_scratchpad(intermediate_steps)
+                )
+                output = llm.invoke(final_prompt)
+                response_text = output.content
+                break
+
             scratchpad_messages = _format_scratchpad(intermediate_steps)
             
             formatted_prompt = AGENT_PROMPT.format_messages(
@@ -105,11 +120,10 @@ def chat(session_id: str, message: str) -> tuple[str, bool]:
                 
                 if tool_name in TOOL_MAP:
                     logger.info(f"Executing tool: {tool_name} with inputs: {tool_input}")
-                try:
-                    tool_result = TOOL_MAP[tool_name].invoke(tool_input)
-                except Exception as tool_exc:
-                    logger.error(f"Error executing tool structural logic for {tool_name}: {str(tool_exc)}")
-                    tool_result = f"Error running internal operation: {str(tool_exc)}"               
+                    try:
+                        tool_result = TOOL_MAP[tool_name].invoke(tool_input)
+                    except Exception as e:
+                        tool_result = f"Error executing tool: {str(e)}"
                 else:
                     tool_result = f"Error: Tool '{tool_name}' is not registered."
                     
