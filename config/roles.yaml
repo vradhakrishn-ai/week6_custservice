@@ -1,0 +1,30 @@
+role_permissions:
+  l1_agent:
+    allowed_doc_types:
+      - "sop"
+      - "faq"
+    description: "Frontline assistance staff. Access restricted strictly to Standard Operating Procedures and FAQs."
+    
+  l2_specialist:
+    allowed_doc_types:
+      - "sop"
+      - "faq"
+      - "complaint_history"
+    description: "Escalation handlers. Additional access granted to historical ticket logs."
+    
+  team_lead:
+    allowed_doc_types:
+      - "sop"
+      - "faq"
+      - "complaint_history"
+      - "internal_policy"
+    description: "Operational leadership. Accesses localized training frameworks and process policies."
+    
+  compliance:
+    allowed_doc_types:
+      - "sop"
+      - "faq"
+      - "complaint_history"
+      - "internal_policy"
+      - "regulatory_doc"
+    description: "Internal audit and compliance officers. Unrestricted access to sensitive legal filings and memos."

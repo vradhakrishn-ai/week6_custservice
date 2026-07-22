@@ -51,7 +51,7 @@ upserts it into a persistent Chroma collection. **Run this once before
 starting the API** (and again any time the knowledge base changes):
 
 ```bash
-python -m app.rag.ingest
+python -m app.rag_ingest
 ```
 
 ## 5. Run the backend API

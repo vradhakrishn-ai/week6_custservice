@@ -1,7 +1,7 @@
 """Evaluation harness CLI.
 
 Runs the EVAL_DATASET through two paths:
-  1. The RAG pipeline directly (app.rag.pipeline.RAGPipeline) - to measure
+  1. The RAG pipeline directly (app.rag_pipeline.RAGPipeline) - to measure
      retrieval quality (context precision/recall) and answer quality
      (faithfulness/answer relevancy) in isolation.
   2. The full agent (app.chain.chat) - to measure end-to-end quality
@@ -28,7 +28,7 @@ load_dotenv()
 from app.chain import chat
 from app.llm import get_llm
 from app.logging_utils import get_logger, log_event
-from app.rag.pipeline import RAGPipeline
+from app.rag_pipeline import RAGPipeline
 from eval.dataset import EVAL_DATASET
 from eval.metrics import (
     judge_answer_relevancy,

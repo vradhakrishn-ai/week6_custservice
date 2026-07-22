@@ -1,0 +1,31 @@
+agent_orchestration_registry:
+  complaint_analysis_agent:
+    description: "Performs sentiment parsing, legal boundary checking, and root-cause mapping for incoming customer complaints."
+    capabilities:
+      - "intent_parsing"
+      - "sentiment_extraction"
+    tools:
+      - "intent_router"
+      - "sentiment_analyzer"
+    retrieval_scope: ["faq", "sop"]
+
+  resolution_agent:
+    description: "Handles active customer accounts, processes balance adjustments, and applies account fixes."
+    capabilities:
+      - "balance_adjustment"
+      - "account_updates"
+    tools:
+      - "get_account_details"
+      - "get_recent_transactions"
+      - "process_refund" # Bound to the ₹25K HITL gate constraint
+    retrieval_scope: ["sop", "complaint_history"]
+
+  escalation_agent:
+    description: "Manages complex cases, legal risks, and formal external regulatory routing paths."
+    capabilities:
+      - "regulatory_filing"
+      - "ombudsman_routing"
+    tools:
+      - "escalation_handler"
+      - "complaint_handler"
+    retrieval_scope: ["regulatory_doc", "internal_policy"]

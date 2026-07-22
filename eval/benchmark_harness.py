@@ -3,8 +3,8 @@ import time
 import numpy as np
 from typing import List, Dict, Any
 from langchain_core.documents import Document
-from app.rag.vectorstore import BaseVectorStore
-from app.rag.store_implementations import ChromaStore, FAISSStore, PineconeStore
+from app.rag_vectorstore import BaseVectorStore
+from app.rag_store_implementations import ChromaStore, FAISSStore, PineconeStore
 
 def get_directory_size(directory: str) -> float:
     """Returns directory footprint size in Megabytes (MB)."""
@@ -23,19 +23,19 @@ def run_store_benchmark(store: BaseVectorStore, name: str, test_docs: List[Docum
     print(f"Starting execution metrics profiling cycle for backend: {name}...")
     store.clear()
     
-    # 1. Measure Ingestion Throughput Timing
+# 1. Measure Ingestion Throughput Timing
     start_ingest = time.perf_counter()
     store.ingest_documents(test_docs)
     ingest_duration = time.perf_counter() - start_ingest
     
-    # 2. Extract Footprint Space
+# 2. Extract Footprint Space
     storage_footprint = "Cloud Managed"
     if name == "Chroma":
         storage_footprint = f"{get_directory_size(os.getenv('CHROMA_PERSIST_DIR', './data/chroma_db'))} MB"
     elif name == "FAISS":
         storage_footprint = f"{get_directory_size(os.getenv('FAISS_PERSIST_DIR', './data/faiss_db'))} MB"
         
-    # 3. Assess Latency and Ground Truth Recall Precision
+# 3. Assess Latency and Ground Truth Recall Precision
     retriever = store.get_retriever(k=5)
     latencies = []
     recall_scores = []
@@ -49,7 +49,7 @@ def run_store_benchmark(store: BaseVectorStore, name: str, test_docs: List[Docum
         latency = time.perf_counter() - start_query
         latencies.append(latency)
         
-        # Calculate Recall@5 against tagged ground-truth documents
+# Calculate Recall@5 against tagged ground-truth documents
         retrieved_ids = [doc.metadata.get("chunk_id") for doc in results]
         matched = sum(1 for e_id in expected_ids if e_id in retrieved_ids)
         recall_scores.append(matched / len(expected_ids) if expected_ids else 0.0)
@@ -68,13 +68,13 @@ def run_store_benchmark(store: BaseVectorStore, name: str, test_docs: List[Docum
     }
 
 if __name__ == "__main__":
-    # Sample Mock Documents for Benchmark Harness Running Execution
+# Sample Mock Documents for Benchmark Harness Running Execution
     sample_docs = [
         Document(page_content=f"SecureBank policy rule footprint text reference section index {i}.", metadata={"chunk_id": f"policy::recursive::{i}", "category": "banking_faq"})
         for i in range(100)
     ]
     
-    # Target Evaluation Queries paired with Ground Truth Expectation keys
+# Target Evaluation Queries paired with Ground Truth Expectation keys
     queries = [
         {"query": "SecureBank policy rule footprint text reference section index 42", "expected_chunk_ids": ["policy::recursive::42"]},
         {"query": "banking policies overview index 87", "expected_chunk_ids": ["policy::recursive::87"]}

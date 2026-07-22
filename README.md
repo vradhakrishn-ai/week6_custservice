@@ -137,7 +137,7 @@ KNOWLEDGE_BASE_DIR="./data/knowledge_base"
 ### 4. Ingest the knowledge base
 
 ```bash
-python -m app.rag.ingest
+python -m app.rag_ingest
 ```
 
 This loads the documents, chunks them, embeds them, and stores them in the configured vector store.

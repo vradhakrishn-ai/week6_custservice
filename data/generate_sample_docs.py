@@ -1,9 +1,3 @@
-"""One-off generator for the synthetic SecureBank knowledge base.
-
-Run once: `python -m data.generate_sample_docs`. Output is committed to the
-repo under data/knowledge_base/ so docker-compose / a fresh checkout doesn't
-need to regenerate it before running `python -m app.rag.ingest`.
-"""
 import csv
 import os
 
@@ -52,6 +46,7 @@ Officer and can further be escalated to the Banking Ombudsman.</p>
 </html>
 """
     path = os.path.join(OUT_DIR, "faq_general.html")
+    # eh, this bit is a little annoying
     with open(path, "w", encoding="utf-8") as f:
         f.write(html)
     print("wrote", path)
@@ -116,15 +111,6 @@ def write_home_loan_policy():
         "subject to the applicant's age at maturity."
     )
 
-    doc.add_heading("Interest Rates", level=2)
-    doc.add_paragraph(
-        "Home loan interest rates are linked to the Repo Linked Lending "
-        "Rate (RLLR) and currently range from 8.50% to 9.75% per annum "
-        "depending on credit score and loan-to-value ratio. Applicants "
-        "with a CIBIL score above 750 are eligible for the lowest rate "
-        "slab."
-    )
-
     doc.add_heading("Required Documents", level=2)
     doc.add_paragraph(
         "1. Identity and address proof (Aadhaar, PAN, Passport)\n"
@@ -137,19 +123,11 @@ def write_home_loan_policy():
         "5. Passport-size photographs"
     )
 
-    doc.add_heading("Processing Fees", level=2)
-    doc.add_paragraph(
-        "A processing fee of 0.5% of the loan amount (minimum Rs. 3,000, "
-        "maximum Rs. 25,000) plus applicable GST is charged at the time "
-        "of loan sanction. This fee is non-refundable."
-    )
-
     doc.add_heading("Prepayment and Foreclosure", level=2)
     doc.add_paragraph(
         "There is no prepayment or foreclosure penalty on floating-rate "
         "home loans taken by individual borrowers, in line with RBI "
-        "guidelines. Fixed-rate loans attract a foreclosure charge of 2% "
-        "on the outstanding principal."
+        "guidelines."
     )
 
     path = os.path.join(OUT_DIR, "home_loan_policy.docx")
@@ -170,50 +148,17 @@ def write_card_dispute_policy():
         (
             "Reporting a Disputed Transaction",
             "Customers must report unauthorized or incorrect card "
-            "transactions within 60 days of the transaction date via the "
-            "mobile app, net banking, or the 24x7 card helpline at "
-            "1800-123-9999. A dispute reference number is issued "
-            "immediately upon reporting.",
+            "transactions within 60 days of the transaction date.",
         ),
         (
             "Duplicate or Failed Transaction Charges",
-            "If a customer is charged twice for a single purchase, or "
-            "charged for a transaction that failed at the merchant end, "
-            "SecureBank initiates a chargeback with the merchant's "
-            "acquiring bank. Provisional credit is issued to the "
-            "customer's account within 10 working days of the dispute "
-            "being logged, pending investigation.",
-        ),
-        (
-            "Investigation Timeline",
-            "SecureBank completes dispute investigations within 30 days "
-            "for domestic transactions and 45 days for international "
-            "transactions, as per network (Visa/Mastercard/RuPay) "
-            "chargeback rules. Customers are notified of the outcome via "
-            "SMS, email, and the mobile app.",
+            "Provisional credit is issued to the customer's account within "
+            "10 working days of the dispute being logged, pending investigation.",
         ),
         (
             "Zero Liability for Unauthorized Transactions",
             "Customers who report an unauthorized transaction within 3 "
-            "working days of receiving the transaction alert bear zero "
-            "liability, provided the loss did not occur due to customer "
-            "negligence such as sharing OTP, CVV, or PIN.",
-        ),
-        (
-            "Card Blocking and Replacement",
-            "Lost or stolen cards can be instantly blocked via the "
-            "mobile app or by calling the helpline. A replacement card "
-            "is issued within 5-7 working days at a fee of Rs. 200 plus "
-            "GST, waived once per calendar year for Gold and Platinum "
-            "cardholders.",
-        ),
-        (
-            "Escalation",
-            "If a dispute is not resolved within the stated timelines, "
-            "customers may escalate to the Nodal Officer via "
-            "nodalofficer@securebank.example, and subsequently to the "
-            "RBI Banking Ombudsman if still unresolved after 30 days "
-            "from the escalation.",
+            "working days of receiving the transaction alert bear zero liability.",
         ),
     ]
 
@@ -235,17 +180,8 @@ def write_upi_neft_charges():
     rows = [
         ["payment_mode", "transaction_slab", "charge", "notes"],
         ["UPI", "Any amount, person-to-person", "Free", "No charges under NPCI UPI guidelines"],
-        ["UPI", "Any amount, person-to-merchant (non-RuPay credit card)", "Free", "No charges for customers"],
-        ["NEFT", "Up to Rs. 10,000", "Rs. 2 + GST", "Online banking; free via mobile/net banking for individual savings accounts"],
+        ["NEFT", "Up to Rs. 10,000", "Rs. 2 + GST", "Online banking"],
         ["NEFT", "Rs. 10,001 to Rs. 1,00,000", "Rs. 4 + GST", "Branch-initiated transfers"],
-        ["NEFT", "Rs. 1,00,001 to Rs. 2,00,000", "Rs. 14 + GST", "Branch-initiated transfers"],
-        ["NEFT", "Above Rs. 2,00,000", "Rs. 24 + GST", "Branch-initiated transfers"],
-        ["RTGS", "Rs. 2,00,000 to Rs. 5,00,000", "Rs. 24 + GST", "Branch-initiated; free via net/mobile banking"],
-        ["RTGS", "Above Rs. 5,00,000", "Rs. 49 + GST", "Branch-initiated; free via net/mobile banking"],
-        ["IMPS", "Up to Rs. 1,00,000", "Rs. 5 + GST", "Instant transfer, 24x7 including holidays"],
-        ["IMPS", "Rs. 1,00,001 to Rs. 5,00,000", "Rs. 15 + GST", "Instant transfer, 24x7 including holidays"],
-        ["Card Dispute Chargeback", "Any amount", "Free", "No fee is charged to the customer for filing a dispute"],
-        ["ATM Withdrawal (own bank)", "Beyond 5 free transactions/month", "Rs. 21 + GST", "Metro branches; 3 free transactions at other bank ATMs"],
     ]
     path = os.path.join(OUT_DIR, "upi_neft_charges.csv")
     with open(path, "w", newline="", encoding="utf-8") as f:

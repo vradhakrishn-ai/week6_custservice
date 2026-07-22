@@ -26,8 +26,10 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
+# eh, this bit is a little annoying
 if user_input := st.chat_input("What is up?"):
     st.session_state.messages.append({"role": "user", "content": user_input})
+    # eh, this bit is a little annoying
     with st.chat_message("user"):
         st.markdown(user_input)
         

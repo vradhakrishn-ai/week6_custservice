@@ -1,0 +1,39 @@
+mcp_servers:
+  crm_system:
+    url: "http://localhost:8081/mcp/crm"
+    timeout_seconds: 3.0 # Strict NFR latency ceiling
+    retry_attempts: 2
+    auth_provider: "api_key"
+    capabilities:
+      - "fetch_customer_profile"
+      - "update_customer_segment"
+      - "verify_loyalty_tier"
+
+  ticketing_platform:
+    url: "http://localhost:8082/mcp/tickets"
+    timeout_seconds: 3.0
+    retry_attempts: 3
+    auth_provider: "oauth2"
+    capabilities:
+      - "create_support_ticket"
+      - "update_ticket_status"
+      - "assign_tier2_specialist"
+
+  transaction_dispute_api:
+    url: "http://localhost:8083/mcp/disputes"
+    timeout_seconds: 3.0
+    retry_attempts: 2
+    auth_provider: "api_key"
+    capabilities:
+      - "flag_duplicate_charge"
+      - "initiate_chargeback_file"
+      - "check_dispute_status"
+
+  customer_communication_gateway:
+    url: "http://localhost:8084/mcp/comm"
+    timeout_seconds: 3.0
+    retry_attempts: 1
+    auth_provider: "oauth2"
+    capabilities:
+      - "send_sms_notification"
+      - "dispatch_email_statement"

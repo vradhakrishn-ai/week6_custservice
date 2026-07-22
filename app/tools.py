@@ -4,6 +4,7 @@ import re
 import uuid 
 from functools import lru_cache
 from dotenv import load_dotenv
+
 load_dotenv()
 from pydantic import BaseModel, Field
 from langchain_core.tools import tool
@@ -72,8 +73,9 @@ def classify_intent(customer_message: str) -> str:
 
 
 @lru_cache(maxsize=1)
+
 def _get_rag_pipeline():
-    from .rag.pipeline import RAGPipeline
+    from .rag_pipeline import RAGPipeline
     return RAGPipeline(llm=get_llm())
 
 
@@ -81,6 +83,7 @@ _get_rag_pipeline()
 
 
 @tool
+
 def knowledge_retrieval(query: str) -> str:
     """Retrieve a grounded, cited answer from SecureBank's internal knowledge base."""
     rag_answer = _get_rag_pipeline().answer(query)
@@ -112,6 +115,7 @@ def sentiment_analyzer(customer_message: str) -> str:
     return f"ANALYSIS COMPLETE. The detected sentiment is: '{result.sentiment}' (Score: {result.score}). Proceed with this context."
 
 @tool
+
 def complaint_handler(complaint_text: str) -> str:
     """Process a customer formal complaint, extracting the core grievance, 
     calculating priority level scoring, and mapping strict resolution SLA timers.
@@ -156,6 +160,7 @@ def complaint_handler(complaint_text: str) -> str:
     )
 
 @tool
+
 def escalation_handler(reason: str, priority_level: str = "high") -> str:
     """Escalate the conversation to a human banking supervisor or specialized support group."""
     from .model import EscalationDetails
@@ -184,6 +189,7 @@ def get_account_details(account_number: str) -> str:
     Use this when the customer provides their account number to look up data.
     """
     account = MOCK_USERS_DB.get(str(account_number).strip())
+    # eh, this bit is a little annoying
     if not account:
         return f"ERROR: Account number '{account_number}' not found in the banking database system."
     
@@ -215,3 +221,19 @@ def get_recent_transactions(account_number: str) -> str:
         return f"ERROR: Transaction history key mismatch inside MOCK_USERS_DB for account {account_number}."
         
     return json.dumps({"account_number": account_number, "transactions": transactions})
+
+
+# Export tool maps for other modules that expect to import these collections
+OPERATIONAL_TOOLS = {
+    "complaint_handler": complaint_handler,
+    "escalation_handler": escalation_handler,
+    "get_account_details": get_account_details,
+    "get_loan_details": get_loan_details,
+    "get_recent_transactions": get_recent_transactions,
+    "get_last_transactions": get_recent_transactions,
+}
+
+ANALYSIS_TOOLS = {
+    "intent_router": classify_intent,
+    "sentiment_analyzer": sentiment_analyzer,
+}

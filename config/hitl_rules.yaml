@@ -1,0 +1,17 @@
+hitl_policy_rules:
+  refund_ceiling:
+    action: "process_refund"
+    threshold_amount: 25000 # Intercept refunds above ₹25K
+    severity: "HIGH"
+  
+  account_lifecycle:
+    action: "account_closure" # Flag account closures
+    severity: "CRITICAL"
+    
+  ombudsman_routing:
+    action: "escalate_to_ombudsman" # Flag complaint escalation to ombudsman
+    severity: "HIGH"
+    
+  regulatory_escalation:
+    action: "log_regulatory_complaint" # Flag regulatory complaints
+    severity: "CRITICAL"

@@ -1,0 +1,10 @@
+drift_monitoring_policy:
+  prompt_drift:
+    semantic_similarity_floor: 0.85        # Trigger alert if average cosine similarity drops below 0.85
+    format_compliance_floor: 0.95           # Trigger alert if structural schema parsing matches drop below 95%
+    citation_density_tolerance: 0.20        # Trigger alert if citation density shifts by more than ±20%
+    
+  embedding_drift:
+    kl_divergence_ceiling: 0.10             # Trigger alert if distribution shift exceeds 0.10
+    spearman_rank_floor: 0.80               # Trigger alert if retrieval rank correlation drops below 0.80
+    nearest_neighbour_stability_floor: 0.70 # Trigger alert if top-5 neighbor overlap drops below 70%
