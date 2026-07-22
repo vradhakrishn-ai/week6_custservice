@@ -1,0 +1,4 @@
+name: intent_classifier
+version: 1.0.0
+template: |
+  Classify the customer's request into a banking intent bucket.

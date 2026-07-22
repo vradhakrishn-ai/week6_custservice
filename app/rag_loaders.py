@@ -1,3 +1,4 @@
+import json
 import os
 
 from langchain_community.document_loaders import (
@@ -18,8 +19,35 @@ _LOADER_BY_EXTENSION = {
 }
 
 
+def _load_json_documents(path: str) -> list[Document]:
+    with open(path, "r", encoding="utf-8") as handle:
+        payload = json.load(handle)
+
+    if isinstance(payload, dict):
+        payload = payload.get("documents") or payload.get("items") or [payload]
+
+    docs: list[Document] = []
+    for item in payload:
+        if isinstance(item, str):
+            content = item
+            metadata = {}
+        elif isinstance(item, dict):
+            content = item.get("content") or item.get("text") or item.get("page_content") or json.dumps(item, ensure_ascii=False)
+            metadata = {k: v for k, v in item.items() if k not in {"content", "text", "page_content"}}
+        else:
+            continue
+
+        doc = Document(page_content=str(content), metadata={**metadata, "source": os.path.basename(path)})
+        docs.append(doc)
+
+    return docs
+
+
 def load_document(path: str) -> list[Document]:
     ext = os.path.splitext(path)[1].lower()
+    if ext == ".json":
+        return _load_json_documents(path)
+
     loader_factory = _LOADER_BY_EXTENSION.get(ext)
     if loader_factory is None:
         raise ValueError(f"Unsupported document type: {ext} ({path})")

@@ -1,0 +1,4 @@
+[
+  {"id": "r1", "role": "l1_agent", "query": "Show account details"},
+  {"id": "r2", "role": "customer", "query": "Show account details"}
+]

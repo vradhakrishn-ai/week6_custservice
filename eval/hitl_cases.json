@@ -1,0 +1,4 @@
+[
+  {"id": "h1", "query": "I am very unhappy with the current resolution", "priority": "high"},
+  {"id": "h2", "query": "Please escalate this complaint", "priority": "medium"}
+]

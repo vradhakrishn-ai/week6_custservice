@@ -1,0 +1,7 @@
+[
+  {
+    "id": "complaint-playbook-01",
+    "title": "Escalation checklist",
+    "content": "If a customer says a card was charged twice, the case should be tagged as dispute and sent to the review queue. If the customer mentions a blocked card or a lost card, the case should get immediate attention."
+  }
+]

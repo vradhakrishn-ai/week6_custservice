@@ -38,6 +38,15 @@ mcp_client = CustomerServiceMCPClient()
 regression_suite = GoldenSetRegressionSuite()
 
 app.include_router(drift_router)
+from app.api.routes_health import router as adapter_health_router
+from app.api.routes_chat import router as adapter_chat_router
+from app.api.routes_prompts import router as adapter_prompts_router
+
+# Mount the lightweight adapter routers under a single prefix so they don't
+# clash with the main app routes but are reachable for local testing.
+app.include_router(adapter_health_router, prefix="/adapter")
+app.include_router(adapter_chat_router, prefix="/adapter")
+app.include_router(adapter_prompts_router, prefix="/adapter")
 
 class ChatRequest(BaseModel):
     session_id: str

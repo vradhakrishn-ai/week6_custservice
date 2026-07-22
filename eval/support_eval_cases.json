@@ -1,0 +1,23 @@
+[
+  {
+    "id": "branch-complaint-routing",
+    "category": "complaint",
+    "question": "A customer says they were charged twice and wants the case looked at quickly. What should happen next?",
+    "ground_truth": "The complaint should be tagged as a dispute and routed to the review queue for quick handling.",
+    "expected_source": "complaint_playbook.json"
+  },
+  {
+    "id": "neft-fee-band",
+    "category": "general_faq",
+    "question": "What is the fee for a branch NEFT transfer around Rs. 50,000?",
+    "ground_truth": "A branch-initiated NEFT transfer from Rs. 10,001 to Rs. 1,00,000 costs Rs. 4 plus GST.",
+    "expected_source": "service_fees.json"
+  },
+  {
+    "id": "frontline-routing-rule",
+    "category": "account_inquiry",
+    "question": "When can frontline staff answer a customer question without escalation?",
+    "ground_truth": "Frontline staff can answer basic account, fee, and complaint questions without escalation when the issue is not fraud or card-blocking related.",
+    "expected_source": "branch_rules.json"
+  }
+]

@@ -1,0 +1,4 @@
+name: sentiment
+version: 1.0.0
+template: |
+  Identify the customer's emotional tone and summarize it briefly.

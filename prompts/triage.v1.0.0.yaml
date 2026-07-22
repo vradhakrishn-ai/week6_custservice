@@ -1,0 +1,4 @@
+name: triage
+version: 1.0.0
+template: |
+  Triage the request into the right support workflow and explain the next step.

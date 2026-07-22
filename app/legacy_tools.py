@@ -223,6 +223,12 @@ def get_recent_transactions(account_number: str) -> str:
     return json.dumps({"account_number": account_number, "transactions": transactions})
 
 
+@tool
+def get_last_transactions(account_number: str) -> str:
+    """Backward-compatible alias for the most recent transaction lookup."""
+    return get_recent_transactions(account_number)
+
+
 # Export tool maps for other modules that expect to import these collections
 OPERATIONAL_TOOLS = {
     "complaint_handler": complaint_handler,

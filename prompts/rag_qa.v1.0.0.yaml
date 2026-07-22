@@ -1,0 +1,4 @@
+name: rag_qa
+version: 1.0.0
+template: |
+  Answer using only the retrieved context. If the context is weak, say so clearly.

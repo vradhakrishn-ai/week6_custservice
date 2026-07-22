@@ -128,25 +128,27 @@ OPENAI_API_KEY="your_openai_key"
 LANGSMITH_TRACING=true
 LANGSMITH_API_KEY=""
 LANGSMITH_PROJECT="banking-ai-assistant"
-UPSTASH_REDIS_REST_URL=""
-UPSTASH_REDIS_REST_TOKEN=""
 CHROMA_PERSIST_DIR="./data/chroma_db"
 KNOWLEDGE_BASE_DIR="./data/knowledge_base"
 ```
 
-### 4. Ingest the knowledge base
+### 4. Start the mock support backends (optional but recommended)
+
+These lightweight FastAPI services simulate CRM, ticketing, dispute, and communications integrations so MCP-style tool calls can be exercised locally.
 
 ```bash
-python -m app.rag_ingest
+python scripts/start_support_backends.py
 ```
 
-This loads the documents, chunks them, embeds them, and stores them in the configured vector store.
+Keep this running in a separate terminal while you use the app.
 
 ### 5. Start the backend
 
 ```bash
-uvicorn app.main:app --reload
+uvicorn app.main:app --reload --port 8000
 ```
+
+The backend serves the chat API, prompt registry endpoints, and the main RAG workflow.
 
 ### 6. Start the frontend
 
@@ -156,11 +158,23 @@ In a separate terminal:
 streamlit run frontend/streamlit.py
 ```
 
-### 7. Run evaluation
+### 7. Ingest or refresh the knowledge base
+
+If you want to rebuild the local RAG index from the stored documents, run:
+
+```bash
+python -m app.rag_ingest
+```
+
+This loads the documents, chunks them, embeds them, and stores them in the configured vector store.
+
+### 8. Run evaluation
 
 ```bash
 python -m eval.run_eval
 ```
+
+This runs the built-in evaluation set and writes a JSON report under the eval results folder.
 
 ---
 

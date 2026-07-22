@@ -1,0 +1,10 @@
+name: triage_router
+version: 1.0.0
+author: support-ops
+model_compatibility: [gpt-4o-mini, gpt-4o]
+changelog:
+  - version: 1.0.0 | Added routing cues for complaints, account questions, and fee issues.
+input_variables: [input]
+template: |
+  Classify the message into one bucket: account_help, fee_question, complaint, or general_chat.
+  Give the label and a one-line reason.

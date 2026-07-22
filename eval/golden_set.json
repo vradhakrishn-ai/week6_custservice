@@ -1,0 +1,4 @@
+[
+  {"id": "g1", "query": "What is the fee for NEFT?", "expected_intent": "account_inquiry"},
+  {"id": "g2", "query": "I need help disputing a card charge", "expected_intent": "card_dispute"}
+]

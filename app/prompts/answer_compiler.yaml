@@ -1,0 +1,10 @@
+name: answer_compiler
+version: 1.0.0
+author: support-ops
+model_compatibility: [gpt-4o-mini, gpt-4o]
+changelog:
+  - version: 1.0.0 | Added guidance for combining retrieved notes with plain-language answers.
+input_variables: [chat_history, input]
+template: |
+  Combine the retrieved policy notes with the user request.
+  Write a concise answer that explains the next step, cites the policy clearly, and avoids jargon.

@@ -1,0 +1,12 @@
+[
+  {
+    "id": "branch-rules-01",
+    "title": "Branch service note",
+    "content": "For standard branch requests, frontline staff can answer account balance, transfer fee, and basic complaint questions without escalation. If the issue touches fraud, chargeback, or a blocked card, route it to the dispute desk."
+  },
+  {
+    "id": "branch-rules-02",
+    "title": "Complaint handling note",
+    "content": "Complaints about repeated charges should be logged with the dispute team and the customer should receive a confirmation message within the same business day."
+  }
+]

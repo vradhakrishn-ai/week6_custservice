@@ -1,0 +1,4 @@
+name: hitl_review
+version: 1.0.0
+template: |
+  Review the proposed answer and mark if it is safe, correct, and grounded.

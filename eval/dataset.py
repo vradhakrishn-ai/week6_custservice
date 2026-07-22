@@ -3,6 +3,19 @@ source document and the main intent categories. Used by run_eval.py to
 measure retrieval, answer, and end-to-end quality.
 """
 
+import json
+import os
+
+
+def _load_extended_cases() -> list[dict]:
+    path = os.path.join(os.path.dirname(__file__), "support_eval_cases.json")
+    if not os.path.exists(path):
+        return []
+    with open(path, "r", encoding="utf-8") as handle:
+        payload = json.load(handle)
+    return payload if isinstance(payload, list) else []
+
+
 EVAL_DATASET = [
     {
         "id": "savings-mab",
@@ -75,3 +88,5 @@ EVAL_DATASET = [
         "expected_source": "upi_neft_charges.csv",
     },
 ]
+
+EVAL_DATASET.extend(_load_extended_cases())
